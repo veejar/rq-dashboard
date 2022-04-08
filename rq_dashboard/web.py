@@ -378,7 +378,10 @@ def job_view(instance_number, job_id):
 @jsonify
 def delete_job_view(job_id):
     job = Job.fetch(job_id)
-    job.delete()
+    if job.is_stopped and job.failed_job_registry:
+        job.failed_job_registry.remove(job.id)
+    else:
+        job.delete()
     return dict(status="OK")
 
 
