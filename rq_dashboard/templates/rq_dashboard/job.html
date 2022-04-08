@@ -18,7 +18,14 @@
     <script name="job-info" type="text/template">
 
         <span class="col-6">
-            <p class="ellipsify"><strong>Description</strong>:<br><%= d.description %></p>
+            <p class="ellipsify"><strong>Name</strong>:<br><%= d.func_name %></p>
+            <p class="ellipsify"><strong>Arguments</strong>:<br>
+                <% if (d.args) { %>
+                <pre class='job_args'><%= JSON.stringify(d.args, undefined, 2) %></pre>
+                <% } else { %>
+                None
+                <% } %>
+            </p>
             <p><strong>Origin queue</strong>:<br><%= d.origin %></p>
             <p><strong>Status</strong>:<br><%= d.status %></p>
             <% if (d.result) { %>
@@ -29,8 +36,10 @@
         <span class="col-6">
             <p><strong>Created at</strong>:<br> <%= d.created_at %></p>
             <p><strong>Enqueued at</strong>:<br> <%= d.enqueued_at %></p>
-            <% if (d.exc_info) { %>
+            <p><strong>Started at</strong>:<br> <%= d.started_at %></p>
+            <% if (d.ended_at_orig) { %>
             <p><strong>Ended at</strong>:<br> <%= d.ended_at %></p>
+            <p><strong>Complete in</strong>:<br> <%= d.complete_in %></p>
             <% } %>
         </span>
 

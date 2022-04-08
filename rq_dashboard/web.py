@@ -21,6 +21,7 @@ import re
 from functools import wraps
 from math import ceil
 from dateutil import parser
+import humanize
 
 import arrow
 from flask import (
@@ -174,25 +175,58 @@ def serialize_date(dt):
         return None
     return arrow.get(dt).to("UTC").datetime.isoformat()
 
+def serialize_timediff(dt_start, dt_end):
+    if dt_start and dt_end:
+        return humanize.naturaldelta(dt_end-dt_start)
+    else:
+        return None
+
+def serialize_job_args(args, kwargs):
+    if kwargs: return kwargs
+
+    if len(args) == 1:
+        res = args[0]
+    elif len(args) == 0:
+        res = None
+    else:
+        res = args
+    return res
 
 def serialize_job(job):
+    if job is None:
+        return "idle"
+
     return dict(
         id=job.id,
         created_at=serialize_date(job.created_at),
+        created_at_orig=job.created_at,
+        started_at=serialize_date(job.started_at),
+        started_at_orig=job.started_at,
         ended_at=serialize_date(job.ended_at),
+        ended_at_orig=job.ended_at,
+        enqueued_at_orig=job.enqueued_at,
+        enqueued_at=serialize_date(job.enqueued_at),
+        origin=job.origin,
+        status=job.get_status(),
+        complete_in=serialize_timediff(job.started_at, job.ended_at),
         exc_info=str(job.exc_info) if job.exc_info else None,
         description=job.description,
+        args = serialize_job_args(job.args, job.kwargs),
+        func_name=job.func_name
     )
 
 
 def serialize_current_job(job):
     if job is None:
         return "idle"
+
     return dict(
         job_id=job.id,
         description=job.description,
+        created_at_orig=job.created_at,
         created_at=serialize_date(job.created_at),
         call_string=job.get_call_string(),
+        func_name=job.func_name
     )
 
 
@@ -452,7 +486,6 @@ def list_jobs(instance_number, queue_name, registry_name, per_page, page):
         queue_name, registry_name, offset, per_page, current_page
     )
 
-
     pages_numbers_in_window = pagination_window(total_items, current_page, per_page)
     pages_in_window = [
         dict(
@@ -538,17 +571,7 @@ def list_jobs(instance_number, queue_name, registry_name, per_page, page):
 @jsonify
 def job_info(instance_number, job_id):
     job = Job.fetch(job_id)
-    return dict(
-        id=job.id,
-        created_at=serialize_date(job.created_at),
-        enqueued_at=serialize_date(job.enqueued_at),
-        ended_at=serialize_date(job.ended_at),
-        origin=job.origin,
-        status=job.get_status(),
-        result=job._result,
-        exc_info=str(job.exc_info) if job.exc_info else None,
-        description=job.description,
-    )
+    return serialize_job(job)
 
 
 @blueprint.route("/<int:instance_number>/data/workers.json")

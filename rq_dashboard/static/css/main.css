@@ -80,7 +80,15 @@ table#jobs span.origin {
 table#jobs div.job_id {
     font-size: 70%;
     color: gray;
-    margin-left: 24px;
+    margin-left: 0px;
+}
+
+pre.job_args {
+    font-size: 70%;
+}
+
+div.job_complete_in {
+    font-size: 80%;
 }
 
 pre.exc_info {

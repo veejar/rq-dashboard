@@ -26,6 +26,9 @@
         if (job.ended_at !== undefined) {
             job.ended_at = toRelative(Date.create(job.ended_at)) + ' / ' + toShort(Date.create(job.ended_at));
         }
+        if (job.started_at !== undefined) {
+            job.started_at = toRelative(Date.create(job.started_at)) + ' / ' + toShort(Date.create(job.started_at));
+        }
         if (job.status === "failed") {
             $("#requeue-job-btn").show()
         }
