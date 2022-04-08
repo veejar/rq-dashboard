@@ -16,6 +16,17 @@ Maturity notes
 
 The RQ dashboard is currently being developed and is in beta stage.
 
+CHANGELOG
+---------
+
+### 2022-04-08
+
+- Set reverse sorting for finished jobs
+- Added Scheduled jobs stat on Queues page
+- Fixed stopped job deleting
+- Added job args displaying instead of desc
+- Added status endpoint
+
 Installing with Docker
 ----------------------
 
