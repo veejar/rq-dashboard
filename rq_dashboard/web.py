@@ -20,6 +20,7 @@ import os
 import re
 from functools import wraps
 from math import ceil
+from dateutil import parser
 
 import arrow
 from flask import (
@@ -211,11 +212,15 @@ def favicon():
     )
 
 
-def get_queue_registry_jobs_count(queue_name, registry_name, offset, per_page):
+def get_queue_registry_jobs_count(queue_name, registry_name, offset, per_page, current_page):
     queue = Queue(queue_name)
+    reverse = False
+    start = offset
+    end = per_page
+
     if registry_name != "queued":
         if per_page >= 0:
-            per_page = offset + (per_page - 1)
+            end = start + (per_page - 1)
 
         if registry_name == "failed":
             current_queue = FailedJobRegistry(queue_name)
@@ -225,14 +230,21 @@ def get_queue_registry_jobs_count(queue_name, registry_name, offset, per_page):
             current_queue = StartedJobRegistry(queue_name)
         elif registry_name == "finished":
             current_queue = FinishedJobRegistry(queue_name)
+            reverse = True
     else:
         current_queue = queue
     total_items = current_queue.count
 
-    job_ids = current_queue.get_job_ids(offset, per_page)
+    if reverse:
+        start = total_items - (per_page * current_page)
+        end = start + per_page - 1
+        if start < 0: start = 0
+
+    job_ids = current_queue.get_job_ids(start, end)
     current_queue_jobs = [queue.fetch_job(job_id) for job_id in job_ids]
     jobs = [serialize_job(job) for job in current_queue_jobs]
-
+    if reverse:
+        jobs = sorted(jobs, key=lambda x: parser.parse(x['created_at']), reverse=True)
     return (total_items, jobs)
 
 
@@ -425,8 +437,9 @@ def list_jobs(instance_number, queue_name, registry_name, per_page, page):
     per_page = int(per_page)
     offset = (current_page - 1) * per_page
     total_items, jobs = get_queue_registry_jobs_count(
-        queue_name, registry_name, offset, per_page
+        queue_name, registry_name, offset, per_page, current_page
     )
+
 
     pages_numbers_in_window = pagination_window(total_items, current_page, per_page)
     pages_in_window = [
