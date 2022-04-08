@@ -18,3 +18,4 @@ six==1.15.0
 werkzeug==1.0.1
 Redis-Sentinel-Url==1.0.1
 humanize==4.0.0
+simplejson==3.17.6
