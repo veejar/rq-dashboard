@@ -36,7 +36,11 @@
         <td class="narrow"> <a href="<%= d.started_url %>"><%= d.started_job_registry_count %></a></td>
         <td class="narrow"> <a href="<%= d.scheduled_url %>"><%= d.scheduled_job_registry_count %></a></td>
         <td class="narrow"> <a href="<%= d.finished_url %>"><%= d.finished_job_registry_count %></a></td>
+        <% if (d.failed_job_registry_count > 0) { %>
+        <td class="failed red"> <a href="<%= d.failed_url %>"><%= d.failed_job_registry_count %></a></td>
+        <% } else { %>
         <td class="failed"> <a href="<%= d.failed_url %>"><%= d.failed_job_registry_count %></a></td>
+        <% } %>
         </tr>
     </script>
 

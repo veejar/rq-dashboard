@@ -59,6 +59,10 @@ table#queues {
     /*width: 300px;*/
 }
 
+table#queues td.failed.red a {
+    color: red !important;
+}
+
 table#jobs {
   word-wrap: break-word;
 }
