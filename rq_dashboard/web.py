@@ -258,7 +258,6 @@ def favicon():
 
 def get_queue_registry_jobs_count(queue_name, registry_name, offset, per_page, current_page):
     queue = Queue(queue_name)
-    reverse = False
     start = offset
     end = per_page
 
@@ -274,23 +273,25 @@ def get_queue_registry_jobs_count(queue_name, registry_name, offset, per_page, c
             current_queue = StartedJobRegistry(queue_name)
         elif registry_name == "finished":
             current_queue = FinishedJobRegistry(queue_name)
-            reverse = True
         elif registry_name == "scheduled":
             current_queue = ScheduledJobRegistry(queue_name)
     else:
         current_queue = queue
     total_items = current_queue.count
 
-    if reverse:
-        start = total_items - (per_page * current_page)
-        end = start + per_page - 1
-        if start < 0: start = 0
+    if registry_name == "finished":
+        # getting last 50 finished jobs only
+        end = total_items - 1
+        start = max(end - 50, 0)
 
     job_ids = current_queue.get_job_ids(start, end)
     current_queue_jobs = [queue.fetch_job(job_id) for job_id in job_ids]
     jobs = [serialize_job(job) for job in current_queue_jobs]
-    if reverse:
+
+    if registry_name == "finished":
+        # sorting finished jobs by created_at (DESC)
         jobs = sorted(jobs, key=lambda x: parser.parse(x['created_at']), reverse=True)
+
     return (total_items, jobs)
 
 
@@ -481,6 +482,7 @@ def list_queues(instance_number):
 def list_jobs(instance_number, queue_name, registry_name, per_page, page):
     current_page = int(page)
     per_page = int(per_page)
+    if registry_name == 'finished': per_page = 1_000_000_000_000
     offset = (current_page - 1) * per_page
     total_items, jobs = get_queue_registry_jobs_count(
         queue_name, registry_name, offset, per_page, current_page
